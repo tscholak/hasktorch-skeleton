@@ -2,28 +2,25 @@ module Main where
 
 import qualified Control.Foldl as L
 import Control.Lens (element, view, (^?))
-import Control.Monad (ap, replicateM, void)
+import Control.Monad (ap, replicateM)
 import Control.Monad.Trans.Class (MonadTrans (..))
 import Control.Monad.Trans.Cont (ContT (..), evalContT)
 import Control.Monad.Trans.State (StateT (..), evalStateT, gets, state)
-import Data.Foldable (foldrM)
 import Data.Maybe (listToMaybe)
 import Data.Random.Normal (normal)
 import qualified Data.Set as Set
 import Data.Text (Text, unpack)
-import GHC.Exts (IsList (..), Item)
+import GHC.Exts (IsList (..))
 import GHC.Float (float2Double)
-import GHC.Generics
-import GHC.TypeLits
+import GHC.Generics (Generic)
+import GHC.TypeLits (KnownNat, Nat)
 import Graphics.Vega.VegaLite hiding (name, sample)
 import qualified Pipes as P
 import qualified Pipes.Concurrent as P
 import qualified Pipes.Group as P
 import qualified Pipes.Prelude as P
-import System.Random (Random, RandomGen, getStdGen, random)
+import System.Random (Random, RandomGen, getStdGen)
 import Torch.Data.Internal (fromInput', toOutput', withBufferLifted)
-import Torch.Data.Pipeline (Dataset (..), DatasetOptions (..), Sample (..), streamFromMap, datasetOpts)
-import Torch.Data.StreamedPipeline (MonadBaseControl)
 import Torch.Typed hiding (DType, Device, shape, sin)
 import Prelude hiding (filter, tanh)
 
@@ -106,7 +103,7 @@ train model optim learningRate examples =
             -- compute the loss from the predicted values y' and the true values y;
             -- the loss function is the reduced Mean Squared Error (MSE),
             -- i.e. the average squared difference between the predicted values and the true values
-            loss = mseLoss @'ReduceMean y' y
+            loss = mseLoss @ 'ReduceMean y' y
         -- compute gradient of the loss with respect to all the learnable parameters of the model
         -- and update the weights using the optimizer.
         runStep model optim loss learningRate
@@ -130,7 +127,7 @@ evaluate model examples =
   let -- evaluation step function
       step (loss, _) (x, y, iter) = do
         let y' = forward model x
-            loss' = toFloat $ mseLoss @'ReduceMean y' y
+            loss' = toFloat $ mseLoss @ 'ReduceMean y' y
         pure (loss + loss', iter)
       -- initial evaluation state
       init = pure (0, 0)
@@ -248,7 +245,7 @@ train' model optim learningRate options sincData = do
   (examples, shuffle) <- streamFromMap options sincData
   (model, optim) <-
     lift . train model optim learningRate
-      =<< Main.collate @BatchSize 1 (P.Select $ P.zip (P.enumerate examples) (P.each [0..]))
+      =<< Main.collate @BatchSize 1 (P.Select $ P.zip (P.enumerate examples) (P.each [0 ..]))
   pure (model, optim, options {shuffle = shuffle})
 
 evaluate' :: _ => model -> DatasetOptions -> SincData -> ContT r IO (Float, DatasetOptions)
@@ -256,7 +253,7 @@ evaluate' model options sincData = do
   (examples, shuffle) <- streamFromMap options sincData
   loss <-
     lift . evaluate model
-      =<< Main.collate @BatchSize @Device 1 (P.Select $ P.zip (P.enumerate examples) (P.each [0..]))
+      =<< Main.collate @BatchSize @Device 1 (P.Select $ P.zip (P.enumerate examples) (P.each [0 ..]))
   lift . putStrLn $ "Average " <> unpack (name sincData) <> " loss: " <> show loss
   pure (loss, options {shuffle = shuffle})
 
@@ -380,7 +377,7 @@ bufferedCollate buffer batchSize f as = ContT $ \g ->
       fOutput
       (g . P.Select . fromInput')
   where
-    fOutput output = P.runEffect $ (P.>-> (toOutput' output)) . (P.>-> P.mapMaybe f) . L.purely P.folds L.list . view (P.chunksOf batchSize) . P.enumerate $ as
+    fOutput output = P.runEffect $ (P.>-> toOutput' output) . (P.>-> P.mapMaybe f) . L.purely P.folds L.list . view (P.chunksOf batchSize) . P.enumerate $ as
 
 mkVegaLite :: Data -> VegaLite
 mkVegaLite dataset =
