@@ -7,20 +7,20 @@ tests: true
 source-repository-package
     type: git
     location: https://github.com/hasktorch/hasktorch
-    tag: 9ad109f10588270d85097a654d75566cd533e621
-    --sha256: 0qbc3877cpd1q9z7s969g88scrly40a9r6fza01bhisrdsn3pjfn
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
     subdir: libtorch-ffi-helper
 
 source-repository-package
     type: git
     location: https://github.com/hasktorch/hasktorch
-    tag: 9ad109f10588270d85097a654d75566cd533e621
-    --sha256: 0qbc3877cpd1q9z7s969g88scrly40a9r6fza01bhisrdsn3pjfn
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
     subdir: libtorch-ffi
 
 source-repository-package
     type: git
     location: https://github.com/hasktorch/hasktorch
-    tag: 9ad109f10588270d85097a654d75566cd533e621
-    --sha256: 0qbc3877cpd1q9z7s969g88scrly40a9r6fza01bhisrdsn3pjfn
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
     subdir: hasktorch

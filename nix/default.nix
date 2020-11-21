@@ -18,7 +18,7 @@ let
   haskellNix = (import sources.haskell-nix { inherit system sourcesOverride; }).nixpkgsArgs;
   # use our own nixpkgs if it exist in our sources,
   # otherwise use iohkNix default nixpkgs.
-  nixpkgs = sources.nixpkgs-2003 or
+  nixpkgs = sources.nixpkgs-staging-next or
     (builtins.trace "Using IOHK default nixpkgs" iohKNix.nixpkgs);
 
   # for inclusion in pkgs:
@@ -54,7 +54,13 @@ let
                   '';
                 });
               in
-                project.hsPkgs.haskell-language-server.components.exes.haskell-language-server;
+                pkgsOld.symlinkJoin {
+                  name = "haskell-language-server";
+                  paths = with (project.hsPkgs.haskell-language-server.components.exes); [
+                    haskell-language-server
+                    haskell-language-server-wrapper
+                  ];
+                };
           };
         };
       })
